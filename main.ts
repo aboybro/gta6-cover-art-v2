@@ -72,5 +72,10 @@ writeFileSync(
 
 // A one-line receipt on stdout: the dossier's bytes and the screenshots it
 // carries, so a run's output can be eyeballed without opening the files.
+// The dossier must also parse back as JSON — a truncated write would fail
+// the scorer, so refuse to report success on a file that does not parse.
+const dossierText = readFileSync(join(out, 'dossier.json'), 'utf8');
+JSON.parse(dossierText);
 const dossierBytes = statSync(join(out, 'dossier.json')).size;
-console.log(`neon-coast: dossier.json ${dossierBytes} bytes, screenshots: ${shotNames.join(', ')}`);
+const appFiles = readdirSync(join(out, 'app'), { recursive: true }).length;
+console.log(`neon-coast: dossier.json ${dossierBytes} bytes, app files: ${appFiles}, screenshots: ${shotNames.join(', ')}`);

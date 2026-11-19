@@ -1,13 +1,13 @@
-// Fixed scenes for screenshots: ?shot=cover shows one exported cover alone,
-// ?shot=editor shows the editor with photos loaded. Query parameters pick the
-// scene: layout, grade, title, subtitle, titleStyle, titlePos, size, photos
-// (a comma list of sample names) and sun/grain/border (0 or 1).
-// window.__shotReady is set once the scene is painted.
+// Fixed scenes for screenshots: ?shot=cover shows one exported cover on
+// its own, ?shot=editor shows the editor with photos loaded. The scene is
+// picked by query parameters: layout, grade, title, subtitle, titleStyle,
+// titlePos, size, photos (a comma list of sample names) and sun / grain /
+// border (0 or 1). window.__shotReady is set once the scene is painted.
 import { loadImage } from './main.js';
 import { defaultCrop } from './main.js';
 import { layoutById } from './layouts.js';
 
-/** Applies the scene's query parameters to the editor state. */
+// Copies the scene's query parameters into the editor state.
 export function applyShotQuery(query, state) {
   const set = (key, value) => {
     if (value !== null && value !== undefined && value !== '') state[key] = value;
@@ -27,9 +27,12 @@ export function applyShotQuery(query, state) {
   }
 }
 
-/** Loads the named samples and spreads them across the panels. */
+// Loads the named sample photos and spreads them across the panels.
 export async function loadShotPhotos(query, state) {
-  const names = (query.get('photos') ?? 'neon-duo,harbor-heist,beach-chase,rooftop-night').split(',').map((s) => s.trim()).filter(Boolean);
+  const names = (query.get('photos') ?? 'neon-duo,harbor-heist,beach-chase,rooftop-night')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   state.photos = [];
   for (const name of names) {
     try {
@@ -49,7 +52,7 @@ export async function loadShotPhotos(query, state) {
   }
 }
 
-/** Runs one screenshot scene, then flags the page ready to capture. */
+// Runs one screenshot scene, then flags the page ready to capture.
 export async function runShot(shot, query, state, redraw) {
   if (shot === 'cover') document.body.classList.add('shot-cover');
   applyShotQuery(query, state);

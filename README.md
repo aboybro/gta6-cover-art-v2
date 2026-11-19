@@ -21,6 +21,10 @@ Then open http://localhost:8080. Upload your own photos (or try the four AI-made
 - **Key-art lettering**: Anton title with halftone / solid / outline / gradient styles, Pacifico neon-script subtitle, retro sun strip, LEONIDA • 2026 ribbon badge, grain and vignette.
 - **Fast and easy**: one-click Auto Poster fills the panels, grade and title; undo/redo (Ctrl+Z / Ctrl+Y); export all four sizes at once.
 
+## Screenshots
+
+The four screenshots in `screenshots/` are taken from the running app: the 9-panel Whole-Cast cover, the editor with photos loaded, and the portrait and square exports. The scenes are fixed in `shots.json` (`?shot=cover` and `?shot=editor`) so they can be retaken exactly.
+
 All artwork is original: no Rockstar Games logo, artwork or font. Fonts are Anton and Pacifico under the SIL Open Font License (see `app/fonts/OFL.txt`). Sample photos were made with an image model for this entry.
 
 ---

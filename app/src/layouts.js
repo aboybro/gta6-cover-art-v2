@@ -1,18 +1,38 @@
 // Neon Coast Key-Art Studio — panel layouts.
-// Every layout is a list of panels inside the art area (the cover minus the
-// title band). Coordinates are fractions of the art area, 0..1. A panel is a
-// polygon (pts) so diagonal "slashed" panels are possible, plus an optional
-// rotation in degrees for the tilted snapshot look. Gutters and ink frames
-// are drawn by the renderer, not baked into the geometry.
+//
+// A layout splits the poster's art area (everything except the title band)
+// into panels. Coordinates are fractions of that area, 0 to 1. Each panel
+// is a polygon, so diagonal "slashed" panels are possible, and a panel may
+// carry a small rotation for the tilted-snapshot look. The renderer draws
+// the gutters and ink frames; the geometry here only says where each photo
+// goes.
 
-/** A plain rectangle panel from fractions of the art area. */
-function rect(x, y, w, h, rot = 0) {
-  return { pts: [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], rot };
+// Rectangle panel: (x, y) is the top-left corner, (w, h) its size, all as
+// fractions of the art area. `tilt` rotates it a few degrees, in degrees.
+function box(x, y, w, h, tilt = 0) {
+  return {
+    pts: [
+      [x, y],
+      [x + w, y],
+      [x + w, y + h],
+      [x, y + h],
+    ],
+    rot: tilt,
+  };
 }
 
-/** A parallelogram panel: a rectangle sheared by `slant` on its top edge. */
-function slash(x, y, w, h, slant) {
-  return { pts: [[x + slant, y], [x + w, y], [x + w - slant, y + h], [x, y + h]], rot: 0 };
+// Diagonal panel: same rectangle, but the top edge is sheared sideways by
+// `shear`, so the panel reads as a comic-book slash.
+function diagonal(x, y, w, h, shear) {
+  return {
+    pts: [
+      [x + shear, y],
+      [x + w, y],
+      [x + w - shear, y + h],
+      [x, y + h],
+    ],
+    rot: 0,
+  };
 }
 
 export const LAYOUTS = [
@@ -21,10 +41,10 @@ export const LAYOUTS = [
     name: 'Hero + Trio',
     blurb: 'One big hero panel, three stacked beside it.',
     panels: [
-      rect(0, 0, 0.62, 1),
-      rect(0.62, 0, 0.38, 0.34),
-      rect(0.62, 0.34, 0.38, 0.33),
-      rect(0.62, 0.67, 0.38, 0.33),
+      box(0, 0, 0.62, 1),
+      box(0.62, 0, 0.38, 0.34),
+      box(0.62, 0.34, 0.38, 0.33),
+      box(0.62, 0.67, 0.38, 0.33),
     ],
   },
   {
@@ -32,9 +52,15 @@ export const LAYOUTS = [
     name: 'Whole-Cast Grid',
     blurb: 'Nine panels — the whole cast on one poster.',
     panels: [
-      rect(0, 0, 1 / 3, 1 / 3), rect(1 / 3, 0, 1 / 3, 1 / 3), rect(2 / 3, 0, 1 / 3, 1 / 3),
-      rect(0, 1 / 3, 1 / 3, 1 / 3), rect(1 / 3, 1 / 3, 1 / 3, 1 / 3), rect(2 / 3, 1 / 3, 1 / 3, 1 / 3),
-      rect(0, 2 / 3, 1 / 3, 1 / 3), rect(1 / 3, 2 / 3, 1 / 3, 1 / 3), rect(2 / 3, 2 / 3, 1 / 3, 1 / 3),
+      box(0, 0, 1 / 3, 1 / 3),
+      box(1 / 3, 0, 1 / 3, 1 / 3),
+      box(2 / 3, 0, 1 / 3, 1 / 3),
+      box(0, 1 / 3, 1 / 3, 1 / 3),
+      box(1 / 3, 1 / 3, 1 / 3, 1 / 3),
+      box(2 / 3, 1 / 3, 1 / 3, 1 / 3),
+      box(0, 2 / 3, 1 / 3, 1 / 3),
+      box(1 / 3, 2 / 3, 1 / 3, 1 / 3),
+      box(2 / 3, 2 / 3, 1 / 3, 1 / 3),
     ],
   },
   {
@@ -42,9 +68,9 @@ export const LAYOUTS = [
     name: 'Slashed Comic',
     blurb: 'Three diagonal comic slashes across the poster.',
     panels: [
-      slash(0, 0, 0.42, 1, 0.10),
-      slash(0.36, 0, 0.42, 1, 0.10),
-      slash(0.72, 0, 0.38, 1, 0.10),
+      diagonal(0, 0, 0.42, 1, 0.1),
+      diagonal(0.36, 0, 0.42, 1, 0.1),
+      diagonal(0.72, 0, 0.38, 1, 0.1),
     ],
   },
   {
@@ -52,25 +78,25 @@ export const LAYOUTS = [
     name: 'Tilted Snapshots',
     blurb: 'Overlapping tilted snapshots, polaroid style.',
     panels: [
-      rect(0.02, 0.06, 0.44, 0.82, -5),
-      rect(0.30, 0.12, 0.44, 0.82, 4),
-      rect(0.58, 0.04, 0.40, 0.82, -3),
+      box(0.02, 0.06, 0.44, 0.82, -5),
+      box(0.3, 0.12, 0.44, 0.82, 4),
+      box(0.58, 0.04, 0.4, 0.82, -3),
     ],
   },
   {
     id: 'full-bleed',
     name: 'Full Bleed',
     blurb: 'One photo edge to edge, title over the sky.',
-    panels: [rect(0, 0, 1, 1)],
+    panels: [box(0, 0, 1, 1)],
   },
   {
     id: 'duo-strip',
     name: 'Duo + Strip',
     blurb: 'Two leads on top, a wide strip below.',
     panels: [
-      rect(0, 0, 0.5, 0.66),
-      rect(0.5, 0, 0.5, 0.66),
-      rect(0, 0.66, 1, 0.34),
+      box(0, 0, 0.5, 0.66),
+      box(0.5, 0, 0.5, 0.66),
+      box(0, 0.66, 1, 0.34),
     ],
   },
   {
@@ -78,9 +104,9 @@ export const LAYOUTS = [
     name: 'Triptych',
     blurb: 'Three tall panels, three moments.',
     panels: [
-      rect(0, 0, 1 / 3, 1),
-      rect(1 / 3, 0, 1 / 3, 1),
-      rect(2 / 3, 0, 1 / 3, 1),
+      box(0, 0, 1 / 3, 1),
+      box(1 / 3, 0, 1 / 3, 1),
+      box(2 / 3, 0, 1 / 3, 1),
     ],
   },
   {
@@ -88,10 +114,10 @@ export const LAYOUTS = [
     name: 'Hero Top',
     blurb: 'Wide hero on top, three small frames below.',
     panels: [
-      rect(0, 0, 1, 0.62),
-      rect(0, 0.62, 1 / 3, 0.38),
-      rect(1 / 3, 0.62, 1 / 3, 0.38),
-      rect(2 / 3, 0.62, 1 / 3, 0.38),
+      box(0, 0, 1, 0.62),
+      box(0, 0.62, 1 / 3, 0.38),
+      box(1 / 3, 0.62, 1 / 3, 0.38),
+      box(2 / 3, 0.62, 1 / 3, 0.38),
     ],
   },
   {
@@ -99,16 +125,19 @@ export const LAYOUTS = [
     name: 'Quad + Banner',
     blurb: 'Four squares over a wide banner panel.',
     panels: [
-      rect(0, 0, 0.5, 0.36),
-      rect(0.5, 0, 0.5, 0.36),
-      rect(0, 0.36, 0.5, 0.36),
-      rect(0.5, 0.36, 0.5, 0.36),
-      rect(0, 0.72, 1, 0.28),
+      box(0, 0, 0.5, 0.36),
+      box(0.5, 0, 0.5, 0.36),
+      box(0, 0.36, 0.5, 0.36),
+      box(0.5, 0.36, 0.5, 0.36),
+      box(0, 0.72, 1, 0.28),
     ],
   },
 ];
 
-/** Finds a layout by id, falling back to the first one. */
+// Look a layout up by id; unknown ids fall back to the first layout.
 export function layoutById(id) {
-  return LAYOUTS.find((l) => l.id === id) ?? LAYOUTS[0];
+  for (const layout of LAYOUTS) {
+    if (layout.id === id) return layout;
+  }
+  return LAYOUTS[0];
 }

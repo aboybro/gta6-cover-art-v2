@@ -1,2 +1,4 @@
+# Local dossier outputs from `MAKEFUN_OUTPUT_DIR=out node main.ts` — never committed.
 out/
+out1/
 out2/

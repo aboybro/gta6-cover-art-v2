@@ -1,1 +1,26 @@
-[{"h":720,"name":"1-cover.jpg","query":"?shot=cover&layout=cast-grid&grade=neon-coast&title=Neon%20Coast&subtitle=Leonida%2C%202026&photos=neon-duo%2Charbor-heist%2Cbeach-chase%2Crooftop-night","w":1280},{"h":720,"name":"2-editor.jpg","query":"?shot=editor&layout=hero-trio&grade=vice-sunset&title=Sunset%20Heist&subtitle=Leonida%2C%202026&photos=neon-duo%2Charbor-heist%2Cbeach-chase%2Crooftop-night","w":1280},{"h":1280,"name":"3-cover-portrait.jpg","query":"?shot=cover&layout=hero-trio&grade=afterglow&title=Afterglow%20Run&subtitle=Leonida%2C%202026&photos=beach-chase%2Cneon-duo%2Charbor-heist&size=1080x1350","w":1024},{"h":1080,"name":"4-cover-square.jpg","query":"?shot=cover&layout=slashed&grade=magenta-nights&title=Vice%20Nights&subtitle=Leonida%2C%202026&photos=rooftop-night%2Cneon-duo%2Charbor-heist&size=1080x1080","w":1080}]
+[
+  {
+    "h": 720,
+    "name": "1-cover.jpg",
+    "query": "?shot=cover&layout=cast-grid&grade=neon-coast&title=Neon%20Coast&subtitle=Leonida%2C%202026&photos=neon-duo%2Charbor-heist%2Cbeach-chase%2Crooftop-night",
+    "w": 1280
+  },
+  {
+    "h": 720,
+    "name": "2-editor.jpg",
+    "query": "?shot=editor&layout=hero-trio&grade=vice-sunset&title=Sunset%20Heist&subtitle=Leonida%2C%202026&photos=neon-duo%2Charbor-heist%2Cbeach-chase%2Crooftop-night",
+    "w": 1280
+  },
+  {
+    "h": 1280,
+    "name": "3-cover-portrait.jpg",
+    "query": "?shot=cover&layout=hero-trio&grade=afterglow&title=Afterglow%20Run&subtitle=Leonida%2C%202026&photos=beach-chase%2Cneon-duo%2Charbor-heist&size=1080x1350",
+    "w": 1024
+  },
+  {
+    "h": 1080,
+    "name": "4-cover-square.jpg",
+    "query": "?shot=cover&layout=slashed&grade=magenta-nights&title=Vice%20Nights&subtitle=Leonida%2C%202026&photos=rooftop-night%2Cneon-duo%2Charbor-heist&size=1080x1080",
+    "w": 1080
+  }
+]

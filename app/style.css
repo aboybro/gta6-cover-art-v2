@@ -1,3 +1,6 @@
+/* Neon Coast Key-Art Studio — editor chrome.
+   Dark violet workspace so the bright poster preview stands out. */
+
 @font-face { font-family: 'Anton'; src: url('./fonts/Anton-Regular.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Pacifico'; src: url('./fonts/Pacifico-Regular.ttf') format('truetype'); font-display: swap; }
 
@@ -45,6 +48,8 @@ button.active { outline: 2px solid #ffd76a; outline-offset: 1px; }
 .preview-hint { color: #a894d4; font-size: 13px; }
 #status { color: #7df9ff; min-height: 1.2em; margin: 6px 0 0; }
 
+/* Screenshot scenes: a cover shot hides the editor and fills the frame
+   with the cover alone; an editor shot keeps the sticky preview static. */
 body.shot-cover .controls { display: none; }
 body.shot-cover .app { padding: 0; }
 body.shot-cover .preview { position: static; }

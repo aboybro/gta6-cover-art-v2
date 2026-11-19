@@ -1,8 +1,11 @@
 // Neon Coast Key-Art Studio — colour grades.
-// Each grade is a poster gradient map: shadows, midtones and highlights are
-// remapped onto a sunset / neon palette and posterized into flat comic
-// levels. Skin-safe: pixels that read as skin keep more of the original
-// photo, so faces never turn plastic orange or green.
+//
+// A grade is a poster gradient map: each pixel's brightness is flattened
+// into a few flat comic levels, then remapped from a dark colour through a
+// mid colour to a bright one. That is what gives the poster its sunset or
+// neon print look. Skin is special-cased: pixels that look like skin keep
+// most of the original photo, so faces stay natural instead of turning
+// plastic orange or green.
 
 export const GRADES = [
   {
@@ -47,27 +50,32 @@ export const GRADES = [
   },
 ];
 
-/** Finds a grade by id, falling back to the first one. */
+// Look a grade up by id; unknown ids fall back to the first grade.
 export function gradeById(id) {
-  return GRADES.find((g) => g.id === id) ?? GRADES[0];
+  for (const grade of GRADES) {
+    if (grade.id === id) return grade;
+  }
+  return GRADES[0];
 }
 
-/** Rough skin test on an sRGB pixel: warm, mid-saturation, red-dominant. */
+// Rough skin test on one sRGB pixel: warm, mid-saturation, red on top.
 export function isSkin(r, g, b) {
-  if (!(r > 90 && r > g && g > b)) return false;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  if (max - min < 18 || max - min > 110) return false;
-  const hue = (r - g) / Math.max(1, max - min);
+  if (r <= 90 || r <= g || g <= b) return false;
+  const spread = Math.max(r, g, b) - Math.min(r, g, b);
+  if (spread < 18 || spread > 110) return false;
+  const hue = (r - g) / Math.max(1, spread);
   return hue > 0.25 && hue < 1.4;
 }
 
-/**
- * Grades one photo image into a cached offscreen canvas. The photo is drawn
- * at `width` pixels wide, then every pixel is posterized and gradient-mapped
- * (shadow -> mid -> high). Skin pixels keep `skinKeep` of the original.
- * Returns a canvas the renderer draws panels from.
- */
+// Blend one channel from colour `from` to colour `to` at position t (0..1).
+function lerpChannel(from, to, t) {
+  return from + (to - from) * t;
+}
+
+// Grade one photo into a fresh offscreen canvas. The photo is drawn at
+// `width` pixels wide, then every pixel is posterized and gradient-mapped
+// (shadow -> mid -> high). Skin pixels keep `skinKeep` of the original
+// photo. Returns the graded canvas; the renderer draws panels from it.
 export function gradePhoto(img, grade, width = 960) {
   const scale = width / img.naturalWidth;
   const height = Math.max(1, Math.round(img.naturalHeight * scale));
@@ -76,46 +84,46 @@ export function gradePhoto(img, grade, width = 960) {
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, width, height);
-  const data = ctx.getImageData(0, 0, width, height);
-  const px = data.data;
+  const image = ctx.getImageData(0, 0, width, height);
+  const px = image.data;
   const { shadow, mid, high, levels, skinKeep } = grade;
-  const mix = grade.mix ?? 0.62;
+  const strength = grade.mix ?? 0.62;
   const step = 1 / levels;
   for (let i = 0; i < px.length; i += 4) {
     const r = px[i];
     const g = px[i + 1];
     const b = px[i + 2];
-    // Luminance, posterized into flat comic levels.
+    // Brightness, snapped down to flat comic levels.
     let lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     lum = Math.min(1, Math.floor(lum / step) * step + step / 2);
-    // Gradient map: shadow -> mid below 0.5, mid -> high above it.
+    // Gradient map: shadow -> mid on the dark half, mid -> high above it.
     let mr;
     let mg;
     let mb;
     if (lum < 0.5) {
       const t = lum / 0.5;
-      mr = shadow[0] + (mid[0] - shadow[0]) * t;
-      mg = shadow[1] + (mid[1] - shadow[1]) * t;
-      mb = shadow[2] + (mid[2] - shadow[2]) * t;
+      mr = lerpChannel(shadow[0], mid[0], t);
+      mg = lerpChannel(shadow[1], mid[1], t);
+      mb = lerpChannel(shadow[2], mid[2], t);
     } else {
       const t = (lum - 0.5) / 0.5;
-      mr = mid[0] + (high[0] - mid[0]) * t;
-      mg = mid[1] + (high[1] - mid[1]) * t;
-      mb = mid[2] + (high[2] - mid[2]) * t;
+      mr = lerpChannel(mid[0], high[0], t);
+      mg = lerpChannel(mid[1], high[1], t);
+      mb = lerpChannel(mid[2], high[2], t);
     }
-    // Blend the poster map with the original so the photo stays readable,
-    // and keep skin pixels closer to the original than the rest.
+    // Mix the poster map with the original so the photo stays readable;
+    // skin pixels stay much closer to the original than the rest.
     if (isSkin(r, g, b)) {
       px[i] = mr + (r - mr) * skinKeep;
       px[i + 1] = mg + (g - mg) * skinKeep;
       px[i + 2] = mb + (b - mb) * skinKeep;
     } else {
-      px[i] = mr * mix + r * (1 - mix);
-      px[i + 1] = mg * mix + g * (1 - mix);
-      px[i + 2] = mb * mix + b * (1 - mix);
+      px[i] = mr * strength + r * (1 - strength);
+      px[i + 1] = mg * strength + g * (1 - strength);
+      px[i + 2] = mb * strength + b * (1 - strength);
     }
   }
-  ctx.putImageData(data, 0, 0);
+  ctx.putImageData(image, 0, 0);
   if (grade.tint) {
     ctx.fillStyle = grade.tint;
     ctx.fillRect(0, 0, width, height);

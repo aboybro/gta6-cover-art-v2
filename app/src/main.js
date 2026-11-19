@@ -1,8 +1,9 @@
 // Neon Coast Key-Art Studio — the editor.
+//
 // Wires the controls to the renderer: photos, layouts, grades, caption,
 // focal points, undo/redo, one-click Auto Poster and PNG export in the four
-// common post sizes. Also exposes the screenshot scenes (?shot=cover and
-// ?shot=editor) that shots.js drives.
+// common post sizes. It also drives the screenshot scenes (?shot=cover and
+// ?shot=editor) that shots.js sets up.
 
 import { LAYOUTS, layoutById } from './layouts.js';
 import { GRADES, gradeById } from './grades.js';
@@ -17,14 +18,17 @@ export const SIZES = [
   { id: '1080x1920', label: 'Story 1080 × 1920', w: 1080, h: 1920 },
 ];
 
-const TITLES = ['Neon Coast', 'Sunset Heist', 'Vice Nights', 'Palm Royale', 'Afterglow Run', 'Leonida Nights'];
+const AUTO_TITLES = ['Neon Coast', 'Sunset Heist', 'Vice Nights', 'Palm Royale', 'Afterglow Run', 'Leonida Nights'];
 
-/** A fresh per-panel crop: photo slot, focal point, zoom and pan. */
+// --- state -----------------------------------------------------------------
+
+// A fresh per-panel crop: which photo slot, where its focal point sits,
+// and how far it is zoomed and panned.
 export function defaultCrop(i) {
   return { photo: i, fx: 0.5, fy: 0.42, zoom: 1.08, panX: 0, panY: 0 };
 }
 
-/** The editor state: everything renderCover needs, plus UI selection. */
+// The editor state: everything renderCover needs, plus the UI selection.
 export function freshState() {
   return {
     layout: 'hero-trio',
@@ -47,7 +51,7 @@ export function freshState() {
 
 export const state = freshState();
 
-/** Loads an image from a URL and resolves with the HTMLImageElement. */
+// Loads an image from a URL and resolves with the HTMLImageElement.
 export function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -62,7 +66,7 @@ const ctx = canvas.getContext('2d');
 let gradedCache = [];
 let gradeKey = '';
 
-/** Re-grades the photos when the grade changed, then repaints. */
+// Re-grades the photos when the grade changed, then repaints the preview.
 export function redraw() {
   const key = `${state.grade}:${state.photos.length}:${state.photos.map((p) => p.name).join(',')}`;
   if (key !== gradeKey) {
@@ -72,7 +76,7 @@ export function redraw() {
   renderCover(ctx, canvas.width, canvas.height, state, gradedCache, state.selected);
 }
 
-/** Resets the panel crops for the current layout, keeping photo slots. */
+// Rebuilds the panel crops for the current layout, keeping photo slots.
 export function resetPanels(keepPhotos = true) {
   const n = layoutById(state.layout).panels.length;
   const old = state.panels;
@@ -85,7 +89,7 @@ export function resetPanels(keepPhotos = true) {
   }
 }
 
-// ---- history (undo / redo) -----------------------------------------------
+// --- history (undo / redo) -------------------------------------------------
 
 const past = [];
 const future = [];
@@ -112,12 +116,12 @@ function snapshot() {
 function restore(json) {
   const s = JSON.parse(json);
   Object.assign(state, s);
-  syncControls();
   state.panels = s.panels;
+  syncControls();
   redraw();
 }
 
-/** Records the current state so Undo can bring it back. */
+// Records the current state so Undo can bring it back.
 export function pushHistory() {
   past.push(snapshot());
   if (past.length > MAX_HISTORY) past.shift();
@@ -146,7 +150,7 @@ function updateHistoryButtons() {
   if (r) r.disabled = !future.length;
 }
 
-// ---- photos ---------------------------------------------------------------
+// --- photos ----------------------------------------------------------------
 
 function addPhoto(img, name) {
   state.photos.push({ img, name });
@@ -162,14 +166,15 @@ async function loadSamples() {
     try {
       addPhoto(await loadImage(`samples/${name}.jpg`), name);
     } catch {
-      // A missing sample is skipped; the others still fill the cover.
+      // A missing sample is skipped; the others still load.
     }
   }
 }
 
-// ---- Auto Poster ----------------------------------------------------------
+// --- Auto Poster -----------------------------------------------------------
 
-/** One click: best layout for the photo count, a matching grade, a title. */
+// One click: the best layout for the photo count, a matching grade, a
+// title. Deterministic: the same photos always give the same poster.
 export function autoPoster() {
   pushHistory();
   const count = Math.max(1, state.photos.length);
@@ -178,16 +183,16 @@ export function autoPoster() {
   const grades = ['vice-sunset', 'neon-coast', 'afterglow', 'magenta-nights'];
   state.grade = grades[(state.title.length + count) % grades.length];
   if (!state.title || state.title === 'Neon Coast') {
-    state.title = TITLES[(count * 3 + state.photos.length) % TITLES.length];
+    state.title = AUTO_TITLES[(count * 3 + state.photos.length) % AUTO_TITLES.length];
   }
   resetPanels();
   syncControls();
   redraw();
 }
 
-// ---- export ---------------------------------------------------------------
+// --- export ----------------------------------------------------------------
 
-/** Renders the cover at export resolution and downloads it as a PNG. */
+// Renders the cover at export resolution and downloads it as a PNG.
 export async function exportCover(sizeId, download = true) {
   const size = SIZES.find((s) => s.id === sizeId) ?? SIZES[2];
   const off = document.createElement('canvas');
@@ -208,12 +213,12 @@ export async function exportCover(sizeId, download = true) {
   return blob;
 }
 
-// ---- UI -------------------------------------------------------------------
+// --- UI --------------------------------------------------------------------
 
-const $ = (id) => document.getElementById(id);
+const el = (id) => document.getElementById(id);
 
 function renderThumbs() {
-  const box = $('thumbs');
+  const box = el('thumbs');
   box.innerHTML = '';
   state.photos.forEach((photo, i) => {
     const b = document.createElement('button');
@@ -234,7 +239,7 @@ function renderThumbs() {
 }
 
 function renderLayoutGrid() {
-  const box = $('layoutGrid');
+  const box = el('layoutGrid');
   box.innerHTML = '';
   LAYOUTS.forEach((layout) => {
     const b = document.createElement('button');
@@ -252,11 +257,11 @@ function renderLayoutGrid() {
     });
     box.appendChild(b);
   });
-  $('layoutName').textContent = layoutById(state.layout).name;
+  el('layoutName').textContent = layoutById(state.layout).name;
 }
 
 function renderGradeGrid() {
-  const box = $('gradeGrid');
+  const box = el('gradeGrid');
   box.innerHTML = '';
   GRADES.forEach((grade) => {
     const b = document.createElement('button');
@@ -276,7 +281,7 @@ function renderGradeGrid() {
 }
 
 function renderPanelRow() {
-  const box = $('panelRow');
+  const box = el('panelRow');
   box.innerHTML = '';
   state.panels.forEach((_, i) => {
     const b = document.createElement('button');
@@ -293,7 +298,7 @@ function renderPanelRow() {
 }
 
 function renderSizeRow() {
-  const box = $('sizeRow');
+  const box = el('sizeRow');
   box.innerHTML = '';
   SIZES.forEach((size) => {
     const b = document.createElement('button');
@@ -308,32 +313,32 @@ function renderSizeRow() {
   });
 }
 
-/** Reflects the state in every control (used after undo / Auto Poster). */
+// Reflects the state in every control (used after undo / Auto Poster).
 export function syncControls() {
   renderLayoutGrid();
   renderGradeGrid();
   renderPanelRow();
   renderSizeRow();
-  $('title').value = state.title;
-  $('subtitle').value = state.subtitle;
-  $('titleStyle').value = state.titleStyle;
-  $('titlePos').value = state.titlePos;
-  $('titleSize').value = state.titleSize;
-  $('titleSizeVal').textContent = `${Math.round(state.titleSize * 100)}%`;
-  $('sun').checked = state.sun;
-  $('grain').checked = state.grain;
-  $('border').checked = state.border;
+  el('title').value = state.title;
+  el('subtitle').value = state.subtitle;
+  el('titleStyle').value = state.titleStyle;
+  el('titlePos').value = state.titlePos;
+  el('titleSize').value = state.titleSize;
+  el('titleSizeVal').textContent = `${Math.round(state.titleSize * 100)}%`;
+  el('sun').checked = state.sun;
+  el('grain').checked = state.grain;
+  el('border').checked = state.border;
   const crop = state.panels[state.selected] || defaultCrop(0);
-  $('zoom').value = crop.zoom;
-  $('zoomVal').textContent = `${Math.round(crop.zoom * 100)}%`;
-  $('panX').value = crop.panX;
-  $('panXVal').textContent = crop.panX;
-  $('panY').value = crop.panY;
-  $('panYVal').textContent = crop.panY;
-  $('focal').classList.toggle('active', state.focalMode);
+  el('zoom').value = crop.zoom;
+  el('zoomVal').textContent = `${Math.round(crop.zoom * 100)}%`;
+  el('panX').value = crop.panX;
+  el('panXVal').textContent = crop.panX;
+  el('panY').value = crop.panY;
+  el('panYVal').textContent = crop.panY;
+  el('focal').classList.toggle('active', state.focalMode);
 }
 
-/** Canvas point -> art-area fractions, for clicks and drags. */
+// Canvas point -> art-area fractions, for clicks and drags.
 function canvasPoint(event) {
   const rect = canvas.getBoundingClientRect();
   const px = (event.clientX - rect.left) * (canvas.width / rect.width);
@@ -344,7 +349,7 @@ function canvasPoint(event) {
   return { px, py, fx: px / canvas.width, fy: (py - artY) / (canvas.height - titleH), artY };
 }
 
-/** Which panel holds a point in the art area, or -1. */
+// Which panel holds a point in the art area, or -1 (ray casting).
 function panelAt(fx, fy) {
   const layout = layoutById(state.layout);
   for (let i = 0; i < layout.panels.length; i++) {
@@ -414,7 +419,7 @@ function bindCanvas() {
 }
 
 function bindControls() {
-  $('photo').addEventListener('change', async (event) => {
+  el('photo').addEventListener('change', async (event) => {
     for (const file of event.target.files) {
       const url = URL.createObjectURL(file);
       try {
@@ -425,21 +430,21 @@ function bindControls() {
     }
     event.target.value = '';
   });
-  $('samples').addEventListener('click', loadSamples);
-  $('autoPoster').addEventListener('click', autoPoster);
-  $('undo').addEventListener('click', undo);
-  $('redo').addEventListener('click', redo);
-  $('focal').addEventListener('click', () => {
+  el('samples').addEventListener('click', loadSamples);
+  el('autoPoster').addEventListener('click', autoPoster);
+  el('undo').addEventListener('click', undo);
+  el('redo').addEventListener('click', redo);
+  el('focal').addEventListener('click', () => {
     state.focalMode = !state.focalMode;
-    $('focal').classList.toggle('active', state.focalMode);
+    el('focal').classList.toggle('active', state.focalMode);
   });
-  $('fillAll').addEventListener('click', () => {
+  el('fillAll').addEventListener('click', () => {
     pushHistory();
     const photo = state.panels[state.selected].photo;
     state.panels.forEach((p) => { p.photo = photo; });
     redraw();
   });
-  $('shuffle').addEventListener('click', () => {
+  el('shuffle').addEventListener('click', () => {
     pushHistory();
     state.panels.forEach((p) => {
       p.fx = 0.2 + Math.random() * 0.6;
@@ -448,29 +453,29 @@ function bindControls() {
     });
     redraw();
   });
-  $('title').addEventListener('input', (e) => { state.title = e.target.value; redraw(); });
-  $('subtitle').addEventListener('input', (e) => { state.subtitle = e.target.value; redraw(); });
-  $('titleStyle').addEventListener('change', (e) => { pushHistory(); state.titleStyle = e.target.value; redraw(); });
-  $('titlePos').addEventListener('change', (e) => { pushHistory(); state.titlePos = e.target.value; redraw(); });
-  $('titleSize').addEventListener('input', (e) => {
+  el('title').addEventListener('input', (e) => { state.title = e.target.value; redraw(); });
+  el('subtitle').addEventListener('input', (e) => { state.subtitle = e.target.value; redraw(); });
+  el('titleStyle').addEventListener('change', (e) => { pushHistory(); state.titleStyle = e.target.value; redraw(); });
+  el('titlePos').addEventListener('change', (e) => { pushHistory(); state.titlePos = e.target.value; redraw(); });
+  el('titleSize').addEventListener('input', (e) => {
     state.titleSize = Number(e.target.value);
-    $('titleSizeVal').textContent = `${Math.round(state.titleSize * 100)}%`;
+    el('titleSizeVal').textContent = `${Math.round(state.titleSize * 100)}%`;
     redraw();
   });
-  $('sun').addEventListener('change', (e) => { state.sun = e.target.checked; redraw(); });
-  $('grain').addEventListener('change', (e) => { state.grain = e.target.checked; redraw(); });
-  $('border').addEventListener('change', (e) => { state.border = e.target.checked; redraw(); });
+  el('sun').addEventListener('change', (e) => { state.sun = e.target.checked; redraw(); });
+  el('grain').addEventListener('change', (e) => { state.grain = e.target.checked; redraw(); });
+  el('border').addEventListener('change', (e) => { state.border = e.target.checked; redraw(); });
   const cropInput = (key, fmt) => (e) => {
     const crop = state.panels[state.selected];
     crop[key] = Number(e.target.value);
-    $(`${key}Val`).textContent = fmt(crop[key]);
+    el(`${key}Val`).textContent = fmt(crop[key]);
     redraw();
   };
-  $('zoom').addEventListener('input', cropInput('zoom', (v) => `${Math.round(v * 100)}%`));
-  $('panX').addEventListener('input', cropInput('panX', (v) => `${v}`));
-  $('panY').addEventListener('input', cropInput('panY', (v) => `${v}`));
-  $('export').addEventListener('click', () => exportCover(state.size));
-  $('exportAll').addEventListener('click', async () => {
+  el('zoom').addEventListener('input', cropInput('zoom', (v) => `${Math.round(v * 100)}%`));
+  el('panX').addEventListener('input', cropInput('panX', (v) => `${v}`));
+  el('panY').addEventListener('input', cropInput('panY', (v) => `${v}`));
+  el('export').addEventListener('click', () => exportCover(state.size));
+  el('exportAll').addEventListener('click', async () => {
     for (const size of SIZES) await exportCover(size.id);
   });
   document.addEventListener('keydown', (e) => {
@@ -479,7 +484,7 @@ function bindControls() {
   });
 }
 
-// ---- boot -----------------------------------------------------------------
+// --- boot ------------------------------------------------------------------
 
 const query = new URLSearchParams(location.search);
 const shot = query.get('shot');

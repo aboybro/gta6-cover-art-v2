@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Coast Key-Art Studio — GTA-style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app">
+  <section class="controls" aria-label="Cover editor">
+    <h1>Neon Coast Key-Art Studio</h1>
+    <p class="tagline">Your photos + a caption, made into key-art poster covers. Everything runs offline, on your machine.</p>
+
+    <div class="toolbar">
+      <button id="autoPoster" type="button" class="primary">✦ Auto Poster</button>
+      <button id="undo" type="button" class="ghost" disabled>↩ Undo</button>
+      <button id="redo" type="button" class="ghost" disabled>↪ Redo</button>
+    </div>
+
+    <fieldset>
+      <legend>1 · Photos</legend>
+      <label class="file-label">Upload photos
+        <input id="photo" type="file" accept="image/*" multiple>
+      </label>
+      <button id="samples" type="button" class="ghost">Try the sample photos</button>
+      <div id="thumbs" class="thumbs" aria-label="Loaded photos"></div>
+      <p class="hint">Click a thumbnail to place that photo in the selected panel. Click “Set focal point”, then click a face in the preview to keep it centred.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>2 · Layout — <span id="layoutName">Hero + Trio</span></legend>
+      <div id="layoutGrid" class="layout-grid"></div>
+      <div id="panelRow" class="panel-row" aria-label="Pick a panel to crop"></div>
+      <div class="crop-grid">
+        <label>Zoom <input id="zoom" type="range" min="1" max="3" step="0.05" value="1.08"> <span id="zoomVal">108%</span></label>
+        <label>Pan X <input id="panX" type="range" min="-60" max="60" step="1" value="0"> <span id="panXVal">0</span></label>
+        <label>Pan Y <input id="panY" type="range" min="-60" max="60" step="1" value="0"> <span id="panYVal">0</span></label>
+      </div>
+      <p class="hint">Or drag the photo inside the preview to pan it, scroll to zoom.</p>
+      <div class="row">
+        <button id="focal" type="button" class="ghost">◎ Set focal point</button>
+        <button id="fillAll" type="button" class="ghost">Fill all panels with this photo</button>
+        <button id="shuffle" type="button" class="ghost">Shuffle crops</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>3 · Colour grade</legend>
+      <div id="gradeGrid" class="grade-grid"></div>
+      <p class="hint">Poster gradient-map grades — flat comic levels that keep skin tones safe.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>4 · Caption</legend>
+      <label>Title <input id="title" type="text" maxlength="40" value="Neon Coast"></label>
+      <label>Subtitle <input id="subtitle" type="text" maxlength="40" value="Leonida, 2026"></label>
+      <div class="row">
+        <label>Lettering
+          <select id="titleStyle">
+            <option value="halftone" selected>Halftone</option>
+            <option value="solid">Solid</option>
+            <option value="outline">Outline</option>
+            <option value="gradient">Gradient</option>
+          </select>
+        </label>
+        <label>Position
+          <select id="titlePos">
+            <option value="bottom" selected>Bottom</option>
+            <option value="top">Top</option>
+          </select>
+        </label>
+      </div>
+      <label>Title size <input id="titleSize" type="range" min="0.6" max="1.5" step="0.05" value="1"> <span id="titleSizeVal">100%</span></label>
+      <div class="checks">
+        <label><input id="sun" type="checkbox" checked> Retro sun</label>
+        <label><input id="grain" type="checkbox" checked> Film grain</label>
+        <label><input id="border" type="checkbox" checked> Poster frame</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>5 · Export</legend>
+      <div id="sizeRow" class="size-row" aria-label="Export size"></div>
+      <button id="export" type="button" class="primary">Export PNG at this size</button>
+      <button id="exportAll" type="button" class="primary all">Export all 4 sizes at once</button>
+      <p id="status" role="status"></p>
+    </fieldset>
+  </section>
+  <section class="preview" aria-label="Live preview">
+    <canvas id="cover" width="1920" height="1080" aria-label="The cover preview"></canvas>
+    <p class="preview-hint">Live preview — click a panel to select it, drag to pan, scroll to zoom.</p>
+  </section>
+</main>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

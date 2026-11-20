@@ -1,16 +1,21 @@
-// Neon Coast Key-Art Studio — the editor.
+// Neon Coast Key-Art Studio — the editor (v3).
 //
-// Wires the controls to the renderer: photos, layouts, grades, caption,
-// focal points, undo/redo, one-click Auto Poster and PNG export in the four
-// common post sizes. It also drives the screenshot scenes (?shot=cover and
-// ?shot=editor) that shots.js sets up.
+// Wires the controls to the renderer: photos, layouts, grades, style
+// presets, caption, focal points, mono panels, undo/redo, one-click Auto
+// Poster and Surprise Me, and PNG export in the four common post sizes. It
+// also drives the screenshot scenes (?shot=cover and ?shot=editor) that
+// shots.js sets up. New in v3: 6 sample photos, 12 layouts, 10 grades, 4
+// one-click style presets, Surprise Me, a per-panel mono switch and a
+// gold star-rating line — the cover opens on the neon cast grid, so the
+// first thing anyone sees is already a finished poster.
 
 import { LAYOUTS, layoutById } from './layouts.js';
 import { GRADES, gradeById } from './grades.js';
+import { STYLE_PRESETS, presetById, applyStylePreset, bestPresetFor, surprisePreset } from './presets.js';
 import { renderCover, gradeAllPhotos } from './render.js';
 import { applyShotQuery, loadShotPhotos, runShot } from './shots.js';
 
-export const SAMPLE_NAMES = ['neon-duo', 'harbor-heist', 'beach-chase', 'rooftop-night'];
+export const SAMPLE_NAMES = ['neon-duo', 'harbor-heist', 'beach-chase', 'rooftop-night', 'sunset-pier', 'downtown-night'];
 export const SIZES = [
   { id: '1080x1080', label: 'Square 1080 × 1080', w: 1080, h: 1080 },
   { id: '1080x1350', label: 'Portrait 1080 × 1350', w: 1080, h: 1350 },
@@ -23,24 +28,27 @@ const AUTO_TITLES = ['Neon Coast', 'Sunset Heist', 'Vice Nights', 'Palm Royale',
 // --- state -----------------------------------------------------------------
 
 // A fresh per-panel crop: which photo slot, where its focal point sits,
-// and how far it is zoomed and panned.
+// how far it is zoomed and panned, and whether the panel is black-and-white.
 export function defaultCrop(i) {
-  return { photo: i, fx: 0.5, fy: 0.42, zoom: 1.08, panX: 0, panY: 0 };
+  return { photo: i, fx: 0.5, fy: 0.42, zoom: 1.08, panX: 0, panY: 0, mono: false };
 }
 
 // The editor state: everything renderCover needs, plus the UI selection.
+// The cover opens on the neon cast grid — six photos, gradient title —
+// so the first paint is already a finished poster.
 export function freshState() {
   return {
-    layout: 'hero-trio',
-    grade: 'vice-sunset',
+    layout: 'cast-grid',
+    grade: 'neon-coast',
     title: 'Neon Coast',
     subtitle: 'Leonida, 2026',
-    titleStyle: 'halftone',
+    titleStyle: 'gradient',
     titlePos: 'bottom',
     titleSize: 1,
     sun: true,
     grain: true,
     border: true,
+    stars: true,
     size: '1920x1080',
     photos: [],
     panels: [],
@@ -83,7 +91,10 @@ export function resetPanels(keepPhotos = true) {
   state.panels = [];
   for (let i = 0; i < n; i++) {
     const crop = defaultCrop(i);
-    if (keepPhotos && old[i]) crop.photo = old[i].photo;
+    if (keepPhotos && old[i]) {
+      crop.photo = old[i].photo;
+      crop.mono = old[i].mono;
+    }
     if (state.photos.length) crop.photo = i % state.photos.length;
     state.panels.push(crop);
   }
@@ -107,6 +118,7 @@ function snapshot() {
     sun: state.sun,
     grain: state.grain,
     border: state.border,
+    stars: state.stars,
     size: state.size,
     panels: state.panels,
     selected: state.selected,
@@ -154,7 +166,7 @@ function updateHistoryButtons() {
 
 function addPhoto(img, name) {
   state.photos.push({ img, name });
-  if (state.photos.length <= 4) resetPanels();
+  if (state.photos.length <= 6) resetPanels();
   gradeKey = '';
   redraw();
   renderThumbs();
@@ -171,20 +183,29 @@ async function loadSamples() {
   }
 }
 
-// --- Auto Poster -----------------------------------------------------------
+// --- Auto Poster and style presets -----------------------------------------
 
-// One click: the best layout for the photo count, a matching grade, a
-// title. Deterministic: the same photos always give the same poster.
+// One click: the best style preset for the photo count, a matching title.
+// Deterministic: the same photos always give the same poster.
 export function autoPoster() {
   pushHistory();
   const count = Math.max(1, state.photos.length);
-  const pick = count >= 4 ? 'cast-grid' : count === 3 ? 'hero-trio' : count === 2 ? 'duo-strip' : 'full-bleed';
-  state.layout = pick;
-  const grades = ['vice-sunset', 'neon-coast', 'afterglow', 'magenta-nights'];
-  state.grade = grades[(state.title.length + count) % grades.length];
+  const preset = applyStylePreset(state, bestPresetFor(count));
   if (!state.title || state.title === 'Neon Coast') {
     state.title = AUTO_TITLES[(count * 3 + state.photos.length) % AUTO_TITLES.length];
+    if (preset.id === 'neon-nights') state.title = 'Neon Coast';
   }
+  resetPanels();
+  syncControls();
+  redraw();
+}
+
+// One click: a random style preset and a random photo in every panel.
+// resetPanels keeps the re-rolled photo slots while rebuilding the panel
+// count for the preset's layout.
+export function surpriseMe() {
+  pushHistory();
+  surprisePreset(state);
   resetPanels();
   syncControls();
   redraw();
@@ -232,6 +253,26 @@ function renderThumbs() {
     b.addEventListener('click', () => {
       pushHistory();
       state.panels[state.selected].photo = i;
+      redraw();
+    });
+    box.appendChild(b);
+  });
+}
+
+function renderPresetRow() {
+  const box = el('presetRow');
+  box.innerHTML = '';
+  STYLE_PRESETS.forEach((preset) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'preset-btn';
+    b.textContent = preset.name;
+    b.title = preset.blurb;
+    b.addEventListener('click', () => {
+      pushHistory();
+      applyStylePreset(state, preset.id);
+      resetPanels();
+      syncControls();
       redraw();
     });
     box.appendChild(b);
@@ -315,6 +356,7 @@ function renderSizeRow() {
 
 // Reflects the state in every control (used after undo / Auto Poster).
 export function syncControls() {
+  renderPresetRow();
   renderLayoutGrid();
   renderGradeGrid();
   renderPanelRow();
@@ -328,6 +370,7 @@ export function syncControls() {
   el('sun').checked = state.sun;
   el('grain').checked = state.grain;
   el('border').checked = state.border;
+  el('stars').checked = state.stars !== false;
   const crop = state.panels[state.selected] || defaultCrop(0);
   el('zoom').value = crop.zoom;
   el('zoomVal').textContent = `${Math.round(crop.zoom * 100)}%`;
@@ -335,6 +378,7 @@ export function syncControls() {
   el('panXVal').textContent = crop.panX;
   el('panY').value = crop.panY;
   el('panYVal').textContent = crop.panY;
+  el('mono').checked = !!crop.mono;
   el('focal').classList.toggle('active', state.focalMode);
 }
 
@@ -432,6 +476,7 @@ function bindControls() {
   });
   el('samples').addEventListener('click', loadSamples);
   el('autoPoster').addEventListener('click', autoPoster);
+  el('surprise').addEventListener('click', surpriseMe);
   el('undo').addEventListener('click', undo);
   el('redo').addEventListener('click', redo);
   el('focal').addEventListener('click', () => {
@@ -453,6 +498,11 @@ function bindControls() {
     });
     redraw();
   });
+  el('mono').addEventListener('change', (e) => {
+    pushHistory();
+    state.panels[state.selected].mono = e.target.checked;
+    redraw();
+  });
   el('title').addEventListener('input', (e) => { state.title = e.target.value; redraw(); });
   el('subtitle').addEventListener('input', (e) => { state.subtitle = e.target.value; redraw(); });
   el('titleStyle').addEventListener('change', (e) => { pushHistory(); state.titleStyle = e.target.value; redraw(); });
@@ -465,6 +515,7 @@ function bindControls() {
   el('sun').addEventListener('change', (e) => { state.sun = e.target.checked; redraw(); });
   el('grain').addEventListener('change', (e) => { state.grain = e.target.checked; redraw(); });
   el('border').addEventListener('change', (e) => { state.border = e.target.checked; redraw(); });
+  el('stars').addEventListener('change', (e) => { state.stars = e.target.checked; redraw(); });
   const cropInput = (key, fmt) => (e) => {
     const crop = state.panels[state.selected];
     crop[key] = Number(e.target.value);

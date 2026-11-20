@@ -1,18 +1,20 @@
 // Neon Coast Key-Art Studio — a gta6-cover-art-01 entry (Node 22, standard
 // library only). The app is this directory's app/ folder: plain static files
 // a desktop browser loads offline (app/index.html and its ES modules, the
-// Anton + Pacifico fonts under app/fonts/, four AI-made sample photos under
-// app/samples/ — no network request, no Rockstar artwork or font). This
-// program hands the entry in: it copies app/ and screenshots/ from beside
-// this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library.
+// Anton + Pacifico + Bebas Neue fonts under app/fonts/, six AI-made sample
+// photos under app/samples/ — no network request, no Rockstar artwork or
+// font). This program hands the entry in: it copies app/ and screenshots/
+// from beside this file to /output and writes /output/dossier.json, the
+// summary the judge reads, with the vendored make.fun library.
 //
 // The app turns a person's photos and a caption into key-art poster covers:
-// 9 layouts (hero, whole-cast 9-panel grid, slashed comic, tilted
-// snapshots, full bleed and more), 8 poster gradient-map grades that keep
-// skin tones safe, focal-point cropping per panel, halftone title lettering
-// with a neon-script subtitle, a retro sun strip and a LEONIDA ribbon badge,
-// undo/redo and one-click Auto Poster. Exports are PNGs at 1080x1080,
+// 4 one-click style presets, 12 layouts (hero, whole-cast 9-panel grid,
+// slashed comic, tilted snapshots, full bleed, film strip, spotlight and
+// more), 10 poster gradient-map grades that keep skin tones safe,
+// focal-point cropping per panel, a per-panel black-and-white switch,
+// halftone / chrome title lettering with a neon-script subtitle, a gold
+// star-rating line, a retro sun strip and a LEONIDA ribbon badge, undo/redo,
+// one-click Auto Poster and Surprise Me. Exports are PNGs at 1080x1080,
 // 1080x1350, 1920x1080 and 1080x1920.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
@@ -47,6 +49,19 @@ for (const name of shotNames) {
 }
 if (!existsSync(join(here, 'app', 'index.html'))) {
   throw new Error('app/index.html is missing');
+}
+// v3 ships three OFL fonts and six sample photos: a missing one would
+// leave the title band or a cover panel blank, so fail here instead of
+// handing in a broken app.
+for (const font of ['Anton-Regular.ttf', 'Pacifico-Regular.ttf', 'BebasNeue-Regular.ttf']) {
+  if (!existsSync(join(here, 'app', 'fonts', font))) {
+    throw new Error(`app/fonts/${font} is missing`);
+  }
+}
+for (const photo of ['neon-duo', 'harbor-heist', 'beach-chase', 'rooftop-night', 'sunset-pier', 'downtown-night']) {
+  if (!existsSync(join(here, 'app', 'samples', `${photo}.jpg`))) {
+    throw new Error(`app/samples/${photo}.jpg is missing`);
+  }
 }
 
 mkdirSync(out, { recursive: true });

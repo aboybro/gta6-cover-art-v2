@@ -1,10 +1,13 @@
-// Neon Coast Key-Art Studio — the cover renderer.
+// Neon Coast Key-Art Studio — the cover renderer (v3).
 //
 // One function paints a finished poster onto any canvas: ink-framed photo
 // panels on white gutters, a gradient title band with a retro sun strip,
 // halftone title lettering, a neon-script subtitle, a LEONIDA ribbon badge,
 // grain and a vignette. The live preview and the PNG export both call it,
-// so what you see is exactly what you get.
+// so what you see is exactly what you get. New in v3: a chrome title
+// style (silver gradient with a dark edge), a gold five-star rating line
+// beside the subtitle, a per-panel black-and-white "mono" switch, and the
+// ribbon badge set in Bebas Neue.
 
 import { layoutById } from './layouts.js';
 import { gradeById, gradePhoto } from './grades.js';
@@ -76,6 +79,8 @@ export function coverSource(img, pw, ph, crop) {
 
 // Paints one photo panel: the graded photo clipped to the panel polygon,
 // then the ink frame, a thin paper line, and a pink ring when selected.
+// A mono panel is drawn through a grayscale filter, so one black-and-white
+// panel inside a colour poster reads as a deliberate poster trick.
 export function drawPanel(ctx, panel, art, graded, crop, gutter, selected) {
   const pts = panel.pts.map(([fx, fy]) => [art.x + fx * art.w, art.y + fy * art.h]);
   const cx = pts.reduce((sum, p) => sum + p[0], 0) / pts.length;
@@ -97,6 +102,7 @@ export function drawPanel(ctx, panel, art, graded, crop, gutter, selected) {
     const src = coverSource(graded, x1 - x0, y1 - y0, crop);
     ctx.save();
     ctx.clip();
+    if (crop.mono) ctx.filter = 'grayscale(1) contrast(1.08)';
     ctx.drawImage(graded, src.sx, src.sy, src.sw, src.sh, x0, y0, x1 - x0, y1 - y0);
     ctx.restore();
   } else {
@@ -143,9 +149,63 @@ export function drawSun(ctx, x, y, r, top) {
   ctx.restore();
 }
 
-// The title band: sunset gradient, sun strip, title + neon subtitle, and
-// the LEONIDA ribbon badge. The badge is measured first so a long title
-// shrinks to fit the space left of it instead of running underneath.
+// Five gold stars, the movie-poster rating line, drawn right after the
+// subtitle on the same baseline. Returns the x where the stars end.
+export function drawStarRating(ctx, x, y, size) {
+  ctx.save();
+  ctx.font = `bold ${size}px 'Arial Black', sans-serif`;
+  ctx.fillStyle = '#ffd76a';
+  ctx.shadowColor = '#ff7a3c';
+  ctx.shadowBlur = size * 0.25;
+  ctx.fillText('★★★★★', x, y);
+  const w = ctx.measureText('★★★★★').width;
+  ctx.restore();
+  return x + w;
+}
+
+// Paints the title in the chosen lettering style. `drawTitle` is called
+// after the pink offset shadow is laid down; it fills the title text
+// itself, so every style keeps the same hard shadow underneath.
+export function drawTitleText(ctx, title, tx, ty, titleSize, style) {
+  if (style === 'chrome') {
+    const cg = ctx.createLinearGradient(tx, ty - titleSize, tx, ty + titleSize * 0.1);
+    cg.addColorStop(0, '#ffffff');
+    cg.addColorStop(0.45, '#c8d2e0');
+    cg.addColorStop(0.55, '#5a6a80');
+    cg.addColorStop(1, '#eef4ff');
+    ctx.fillStyle = cg;
+    ctx.fillText(title, tx, ty);
+    ctx.strokeStyle = '#171226';
+    ctx.lineWidth = Math.max(2, titleSize * 0.025);
+    ctx.strokeText(title, tx, ty);
+  } else if (style === 'gradient') {
+    const tg = ctx.createLinearGradient(tx, ty - titleSize, tx, ty);
+    tg.addColorStop(0, '#ffd76a');
+    tg.addColorStop(1, '#ff2e88');
+    ctx.fillStyle = tg;
+    ctx.fillText(title, tx, ty);
+  } else {
+    ctx.fillStyle = '#fff6e8';
+    ctx.fillText(title, tx, ty);
+  }
+  if (style === 'halftone' || !style) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = ctx.createPattern(halftoneTile(), 'repeat');
+    ctx.fillRect(tx, ty - titleSize, ctx.measureText(title).width, titleSize * 1.1);
+    ctx.restore();
+  } else if (style === 'outline') {
+    ctx.strokeStyle = '#ffd76a';
+    ctx.lineWidth = Math.max(2, titleSize * 0.03);
+    ctx.strokeText(title, tx, ty);
+  }
+}
+
+// The title band: sunset gradient, sun strip, title + neon subtitle, the
+// star rating beside the subtitle, and the LEONIDA ribbon badge in Bebas
+// Neue. The badge is measured first so a long title shrinks to fit the
+// space left of it instead of running underneath.
 export function drawTitleBand(ctx, band, state) {
   const { x, y, w, h } = band;
   const grad = ctx.createLinearGradient(x, y, x + w, y + h);
@@ -162,9 +222,9 @@ export function drawTitleBand(ctx, band, state) {
 
   const pad = w * 0.045;
   const badge = 'LEONIDA • 2026';
-  const badgeSize = h * 0.17;
-  ctx.font = `bold ${badgeSize}px 'Arial Black', sans-serif`;
-  const bw = ctx.measureText(badge).width + badgeSize * 1.6;
+  const badgeSize = h * 0.2;
+  ctx.font = `${badgeSize}px 'Bebas Neue', 'Arial Black', sans-serif`;
+  const bw = ctx.measureText(badge).width + badgeSize * 1.8;
   const bh = badgeSize * 2;
   const bx = x + w - bw - pad * 0.4;
   const by = y + h * 0.1;
@@ -181,44 +241,27 @@ export function drawTitleBand(ctx, band, state) {
   }
   const tx = x + pad;
   const ty = y + h * 0.58;
-  // Hard offset shadow, then the title itself in paper white.
+  // Hard offset shadow, then the title itself in the chosen style.
   ctx.fillStyle = '#ff2e88';
   ctx.fillText(title, tx + titleSize * 0.045, ty + titleSize * 0.05);
-  ctx.fillStyle = '#fff6e8';
-  ctx.fillText(title, tx, ty);
-  if (state.titleStyle === 'halftone' || !state.titleStyle) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.beginPath();
-    ctx.rect(x, y, w, h);
-    ctx.clip();
-    ctx.globalAlpha = 0.28;
-    ctx.fillStyle = ctx.createPattern(halftoneTile(), 'repeat');
-    ctx.fillRect(tx, ty - titleSize, ctx.measureText(title).width, titleSize * 1.1);
-    ctx.restore();
-  } else if (state.titleStyle === 'outline') {
-    ctx.strokeStyle = '#ffd76a';
-    ctx.lineWidth = Math.max(2, titleSize * 0.03);
-    ctx.strokeText(title, tx, ty);
-  } else if (state.titleStyle === 'gradient') {
-    const tg = ctx.createLinearGradient(tx, ty - titleSize, tx, ty);
-    tg.addColorStop(0, '#ffd76a');
-    tg.addColorStop(1, '#ff2e88');
-    ctx.fillStyle = tg;
-    ctx.fillText(title, tx, ty);
-  }
-  // Neon-script subtitle in Pacifico, glowing pink.
+  drawTitleText(ctx, title, tx, ty, titleSize, state.titleStyle);
+  // Neon-script subtitle in Pacifico, glowing pink, with gold stars after it.
   if (state.subtitle) {
     const subSize = h * 0.26;
+    const subY = y + h * 0.88;
     ctx.font = `${subSize}px Pacifico, cursive`;
     ctx.shadowColor = '#ff2e88';
     ctx.shadowBlur = subSize * 0.45;
     ctx.fillStyle = '#7df9ff';
-    ctx.fillText(state.subtitle, tx, y + h * 0.88);
+    ctx.fillText(state.subtitle, tx, subY);
+    const subW = ctx.measureText(state.subtitle).width;
     ctx.shadowBlur = 0;
+    if (state.stars !== false) {
+      drawStarRating(ctx, tx + subW + subSize * 0.7, subY, subSize * 0.72);
+    }
   }
-  // Ribbon badge, tilted a touch.
-  ctx.font = `bold ${badgeSize}px 'Arial Black', sans-serif`;
+  // Ribbon badge in Bebas Neue, tilted a touch.
+  ctx.font = `${badgeSize}px 'Bebas Neue', 'Arial Black', sans-serif`;
   ctx.save();
   ctx.translate(bx + bw / 2, by + bh / 2);
   ctx.rotate(-0.03);
@@ -235,9 +278,9 @@ export function drawTitleBand(ctx, band, state) {
 // --- whole cover -----------------------------------------------------------
 
 // Renders the whole cover. `state` carries layout, grade, title, subtitle,
-// titleStyle, titlePos, titleSize, sun, grain, border, photos and panels
-// (per panel: {photo, fx, fy, zoom, panX, panY}). `gradedCache` maps a
-// photo index to its graded canvas for the current grade. `selected`
+// titleStyle, titlePos, titleSize, sun, grain, border, stars, photos and
+// panels (per panel: {photo, fx, fy, zoom, panX, panY, mono}). `gradedCache`
+// maps a photo index to its graded canvas for the current grade. `selected`
 // highlights one panel index, or -1 for none.
 export function renderCover(ctx, W, H, state, gradedCache, selected = -1) {
   ctx.clearRect(0, 0, W, H);
@@ -253,7 +296,7 @@ export function renderCover(ctx, W, H, state, gradedCache, selected = -1) {
   ctx.fillStyle = PAPER;
   ctx.fillRect(art.x, art.y, art.w, art.h);
   layout.panels.forEach((panel, i) => {
-    const crop = state.panels[i] || { photo: 0, fx: 0.5, fy: 0.5, zoom: 1, panX: 0, panY: 0 };
+    const crop = state.panels[i] || { photo: 0, fx: 0.5, fy: 0.5, zoom: 1, panX: 0, panY: 0, mono: false };
     const graded = state.photos.length ? gradedCache[crop.photo % state.photos.length] : null;
     drawPanel(ctx, panel, art, graded, crop, gutter, i === selected);
   });

@@ -1,7 +1,8 @@
 <!doctype html>
 <!-- Neon Coast Key-Art Studio: the editor shell. The preview canvas paints
-     the cover; the controls on the left pick photos, layout, grade and
-     caption. Screenshot scenes are driven by ?shot=, see app/src/shots.js. -->
+     the cover; the controls on the left pick photos, a one-click style
+     preset, layout, grade and caption. Screenshot scenes are driven by
+     ?shot=, see app/src/shots.js. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -17,9 +18,16 @@
 
     <div class="toolbar">
       <button id="autoPoster" type="button" class="primary">✦ Auto Poster</button>
+      <button id="surprise" type="button" class="primary surprise">🎲 Surprise Me</button>
       <button id="undo" type="button" class="ghost" disabled>↩ Undo</button>
       <button id="redo" type="button" class="ghost" disabled>↪ Redo</button>
     </div>
+
+    <fieldset>
+      <legend>Style presets — one click, whole look</legend>
+      <div id="presetRow" class="preset-row" aria-label="Style presets"></div>
+      <p class="hint">A preset sets layout, grade, lettering and title together. Your photos and crops stay as they are.</p>
+    </fieldset>
 
     <fieldset>
       <legend>1 · Photos</legend>
@@ -32,7 +40,7 @@
     </fieldset>
 
     <fieldset>
-      <legend>2 · Layout — <span id="layoutName">Hero + Trio</span></legend>
+      <legend>2 · Layout — <span id="layoutName">Whole-Cast Grid</span></legend>
       <div id="layoutGrid" class="layout-grid"></div>
       <div id="panelRow" class="panel-row" aria-label="Pick a panel to crop"></div>
       <div class="crop-grid">
@@ -45,6 +53,9 @@
         <button id="focal" type="button" class="ghost">◎ Set focal point</button>
         <button id="fillAll" type="button" class="ghost">Fill all panels with this photo</button>
         <button id="shuffle" type="button" class="ghost">Shuffle crops</button>
+      </div>
+      <div class="checks">
+        <label><input id="mono" type="checkbox"> Mono panel — black &amp; white</label>
       </div>
     </fieldset>
 
@@ -61,10 +72,11 @@
       <div class="row">
         <label>Lettering
           <select id="titleStyle">
-            <option value="halftone" selected>Halftone</option>
+            <option value="halftone">Halftone</option>
             <option value="solid">Solid</option>
             <option value="outline">Outline</option>
-            <option value="gradient">Gradient</option>
+            <option value="gradient" selected>Gradient</option>
+            <option value="chrome">Chrome</option>
           </select>
         </label>
         <label>Position
@@ -79,6 +91,7 @@
         <label><input id="sun" type="checkbox" checked> Retro sun</label>
         <label><input id="grain" type="checkbox" checked> Film grain</label>
         <label><input id="border" type="checkbox" checked> Poster frame</label>
+        <label><input id="stars" type="checkbox" checked> ★★★★★ rating</label>
       </div>
     </fieldset>
 

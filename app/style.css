@@ -1,8 +1,9 @@
-/* Neon Coast Key-Art Studio — editor chrome.
+/* Neon Coast Key-Art Studio — editor chrome (v3).
    Dark violet workspace so the bright poster preview stands out. */
 
 @font-face { font-family: 'Anton'; src: url('./fonts/Anton-Regular.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Pacifico'; src: url('./fonts/Pacifico-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Bebas Neue'; src: url('./fonts/BebasNeue-Regular.ttf') format('truetype'); font-display: swap; }
 
 html, body { margin: 0; min-height: 100%; background: #14101d; color: #f4eefc; font: 15px/1.45 system-ui, sans-serif; }
 .app { display: flex; gap: 28px; align-items: flex-start; justify-content: center; padding: 24px; box-sizing: border-box; }
@@ -20,9 +21,11 @@ button:disabled { opacity: 0.4; cursor: default; }
 button.primary { background: linear-gradient(135deg, #ff2e88, #ff7a3c); }
 button.primary:hover { background: linear-gradient(135deg, #ff4a9a, #ff8f52); }
 button.primary.all { background: linear-gradient(135deg, #7a2bff, #00d8ff); color: #081018; }
+button.primary.surprise { background: linear-gradient(135deg, #ffd76a, #ff2e88); color: #1b1030; }
+button.primary.surprise:hover { background: linear-gradient(135deg, #ffe08a, #ff4a9a); }
 button.ghost { background: #241b38; border: 1px solid #4a3a72; }
 button.active { outline: 2px solid #ffd76a; outline-offset: 1px; }
-.toolbar { display: flex; gap: 8px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
 .toolbar .primary { flex: 1; }
 .file-label { cursor: pointer; }
 .file-label input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -32,6 +35,9 @@ button.active { outline: 2px solid #ffd76a; outline-offset: 1px; }
 .thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .thumb { padding: 0; border-radius: 6px; overflow: hidden; width: 72px; height: 54px; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.preset-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.preset-btn { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; padding: 10px 6px; background: linear-gradient(135deg, #3d1450, #7a1e52); border: 1px solid #ff2e88; color: #ffd76a; }
+.preset-btn:hover { background: linear-gradient(135deg, #571a6e, #9a2468); }
 .layout-grid, .grade-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .grade-grid { grid-template-columns: 1fr 1fr; }
 .layout-btn, .grade-btn { font-size: 13px; padding: 8px 6px; }
@@ -41,7 +47,7 @@ button.active { outline: 2px solid #ffd76a; outline-offset: 1px; }
 .crop-grid { display: grid; gap: 6px; margin-top: 10px; }
 .crop-grid label { flex-direction: row; align-items: center; gap: 10px; font-weight: 400; }
 .crop-grid input[type=range] { flex: 1; }
-.checks { display: flex; gap: 16px; margin-top: 10px; }
+.checks { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
 .checks label { flex-direction: row; align-items: center; font-weight: 400; }
 .preview { flex: 1; min-width: 0; position: sticky; top: 24px; }
 .preview canvas { width: 100%; height: auto; display: block; box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-radius: 4px; cursor: crosshair; }

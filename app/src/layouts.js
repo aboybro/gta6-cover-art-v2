@@ -1,11 +1,13 @@
-// Neon Coast Key-Art Studio — panel layouts.
+// Neon Coast Key-Art Studio — panel layouts (v3: 12 layouts).
 //
 // A layout splits the poster's art area (everything except the title band)
 // into panels. Coordinates are fractions of that area, 0 to 1. Each panel
 // is a polygon, so diagonal "slashed" panels are possible, and a panel may
 // carry a small rotation for the tilted-snapshot look. The renderer draws
 // the gutters and ink frames; the geometry here only says where each photo
-// goes.
+// goes. New in v3: Film Strip (four tall frames over a wide banner),
+// Spotlight (one big centre panel flanked by two narrow wings) and
+// Diagonal Duo (two comic slashes, one photo each, face to face).
 
 // Rectangle panel: (x, y) is the top-left corner, (w, h) its size, all as
 // fractions of the art area. `tilt` rotates it a few degrees, in degrees.
@@ -130,6 +132,37 @@ export const LAYOUTS = [
       box(0, 0.36, 0.5, 0.36),
       box(0.5, 0.36, 0.5, 0.36),
       box(0, 0.72, 1, 0.28),
+    ],
+  },
+  {
+    id: 'film-strip',
+    name: 'Film Strip',
+    blurb: 'Four tall film frames over a wide closing shot.',
+    panels: [
+      box(0, 0, 0.25, 0.7),
+      box(0.25, 0, 0.25, 0.7),
+      box(0.5, 0, 0.25, 0.7),
+      box(0.75, 0, 0.25, 0.7),
+      box(0, 0.7, 1, 0.3),
+    ],
+  },
+  {
+    id: 'spotlight',
+    name: 'Spotlight',
+    blurb: 'One big centre panel, two narrow wings watching it.',
+    panels: [
+      box(0, 0, 0.26, 1),
+      box(0.26, 0, 0.48, 1),
+      box(0.74, 0, 0.26, 1),
+    ],
+  },
+  {
+    id: 'diagonal-duo',
+    name: 'Diagonal Duo',
+    blurb: 'Two big comic slashes leaning into each other.',
+    panels: [
+      diagonal(0, 0, 0.56, 1, 0.14),
+      diagonal(0.44, 0, 0.56, 1, -0.14),
     ],
   },
 ];

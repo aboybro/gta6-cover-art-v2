@@ -1,11 +1,12 @@
-// Neon Coast Key-Art Studio — colour grades.
+// Neon Coast Key-Art Studio — colour grades (v3: 10 grades).
 //
 // A grade is a poster gradient map: each pixel's brightness is flattened
 // into a few flat comic levels, then remapped from a dark colour through a
 // mid colour to a bright one. That is what gives the poster its sunset or
 // neon print look. Skin is special-cased: pixels that look like skin keep
 // most of the original photo, so faces stay natural instead of turning
-// plastic orange or green.
+// plastic orange or green. New in v3: Vice Pink (hot pink on deep violet)
+// and Electric Dusk (cyan lightning over midnight blue).
 
 export const GRADES = [
   {
@@ -47,6 +48,16 @@ export const GRADES = [
     id: 'golden-hour', name: 'Golden Hour',
     shadow: [52, 28, 8], mid: [220, 140, 50], high: [255, 246, 210],
     levels: 6, skinKeep: 0.7, tint: 'rgba(255,180,60,0.10)',
+  },
+  {
+    id: 'vice-pink', name: 'Vice Pink',
+    shadow: [44, 6, 62], mid: [255, 46, 140], high: [255, 205, 235],
+    levels: 6, skinKeep: 0.74, tint: 'rgba(255,40,150,0.09)',
+  },
+  {
+    id: 'electric-dusk', name: 'Electric Dusk',
+    shadow: [4, 10, 40], mid: [40, 90, 235], high: [150, 245, 255],
+    levels: 6, skinKeep: 0.72, tint: 'rgba(60,120,255,0.08)',
   },
 ];
 

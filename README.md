@@ -12,20 +12,21 @@ Neon Coast Key-Art Studio — a GTA-style cover art maker: your photos and a cap
 node serve.ts
 ```
 
-Then open http://localhost:8080. Upload your own photos (or try the four AI-made sample photos), pick one of 9 layouts, one of 8 grades, set a focal point per panel by clicking a face, and export a PNG at 1080 × 1080, 1080 × 1350, 1920 × 1080 or 1080 × 1920. Everything runs offline in the browser; photos are never uploaded.
+Then open http://localhost:8080. Upload your own photos (or try the six AI-made sample photos), pick one of 4 one-click style presets, one of 12 layouts, one of 10 grades, set a focal point per panel by clicking a face, flip a panel black-and-white, and export a PNG at 1080 × 1080, 1080 × 1350, 1920 × 1080 or 1080 × 1920. Everything runs offline in the browser; photos are never uploaded.
 
 ## What it makes
 
-- **9 layouts**: Hero + Trio, Whole-Cast 9-panel Grid, Slashed Comic, Tilted Snapshots, Full Bleed, Duo + Strip, Triptych, Hero Top, Quad + Banner.
-- **8 grades**: Vice Sunset, Neon Coast, Magenta Nights, Afterglow, Palm Teal, Ink Noir, Candy Pop, Golden Hour — posterized gradient maps that keep skin tones safe.
-- **Key-art lettering**: Anton title with halftone / solid / outline / gradient styles, Pacifico neon-script subtitle, retro sun strip, LEONIDA • 2026 ribbon badge, grain and vignette.
+- **4 style presets**: Sunset Boulevard, Neon Nights, Vice Vice, Heat Wave — one click sets layout, grade, lettering and title together. Surprise Me re-rolls the whole poster.
+- **12 layouts**: Hero + Trio, Whole-Cast 9-panel Grid, Slashed Comic, Tilted Snapshots, Full Bleed, Duo + Strip, Triptych, Hero Top, Quad + Banner, Film Strip, Spotlight, Diagonal Duo.
+- **10 grades**: Vice Sunset, Neon Coast, Magenta Nights, Afterglow, Palm Teal, Ink Noir, Candy Pop, Golden Hour, Vice Pink, Electric Dusk — posterized gradient maps that keep skin tones safe.
+- **Key-art lettering**: Anton title with halftone / solid / outline / gradient / chrome styles, Pacifico neon-script subtitle with a gold ★★★★★ rating line, retro sun strip, LEONIDA • 2026 ribbon badge in Bebas Neue, grain and vignette.
 - **Fast and easy**: one-click Auto Poster fills the panels, grade and title; undo/redo (Ctrl+Z / Ctrl+Y); export all four sizes at once.
 
 ## Screenshots
 
-The four screenshots in `screenshots/` are taken from the running app: the 9-panel Whole-Cast cover, the editor with photos loaded, and the portrait and square exports. The scenes are fixed in `shots.json` (`?shot=cover` and `?shot=editor`) so they can be retaken exactly.
+The four screenshots in `screenshots/` are taken from the running app: the 9-panel Whole-Cast cover with a black-and-white centre panel, the editor with photos loaded, and the portrait and square exports. The scenes are fixed in `shots.json` (`?shot=cover` and `?shot=editor`) so they can be retaken exactly.
 
-All artwork is original: no Rockstar Games logo, artwork or font. Fonts are Anton and Pacifico under the SIL Open Font License (see `app/fonts/OFL.txt`). Sample photos were made with an image model for this entry.
+All artwork is original: no Rockstar Games logo, artwork or font. Fonts are Anton, Pacifico and Bebas Neue under the SIL Open Font License (see `app/fonts/OFL.txt`). Sample photos were made with an image model for this entry.
 
 ---
 
